@@ -10,7 +10,7 @@ public class MainRunner {
 
 	private void run(String[] args) {
 		// TODO Auto-generated method stub
-		
+		new PaintFrame("Graphic");
 	}
 
 }
