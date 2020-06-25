@@ -13,7 +13,7 @@ public class ToolBarMaker {
 		// TODO Auto-generated constructor stub
 	}
 	// 툴바 생
-	public JPanel toolBar() {
+	public JPanel getToolBar() {
 		JPanel tempPanel = new JPanel();
 		GridLayout toolLayout = new GridLayout(12,1);
 		

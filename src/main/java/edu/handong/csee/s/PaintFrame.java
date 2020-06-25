@@ -15,7 +15,7 @@ public class PaintFrame extends Frame{
  
 	private Color nowColor = Color.BLACK; 
 	private ToolBarMaker tool = new ToolBarMaker();
-	
+	private CanversMaker canvers = new CanversMaker();
 	public PaintFrame(String title) {
 		// 윈도우 창, frame 세팅 
 		JFrame frame = new JFrame(title);
@@ -23,10 +23,10 @@ public class PaintFrame extends Frame{
 		frame.setPreferredSize(new Dimension(900, 700));
 		
 		
-		//툴바 만들기 
+		//인터페이
 		Container contentPane = frame.getContentPane();
-		contentPane.add(tool.toolBar(), BorderLayout.WEST);
-		
+		contentPane.add(tool.getToolBar(), BorderLayout.WEST);
+		contentPane.add(canvers.getCanvers());
 		
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
