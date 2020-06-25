@@ -6,6 +6,8 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GridLayout;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -14,7 +16,7 @@ import javax.swing.JPanel;
 
 
 
-public class PaintFrame extends Frame{
+public class PaintFrame extends Frame implements MouseListener{
  
 	private Color nowColor = Color.BLACK; 
 	private ToolBarMaker tool = new ToolBarMaker();
@@ -27,19 +29,20 @@ public class PaintFrame extends Frame{
 		frame.setLocation(200,100);
 		frame.setPreferredSize(new Dimension(900, 700));
 		
-		
+	/*	
 		JPanel colorSlot = new JPanel(new GridLayout(1,1));
 		colorSlot.setBackground(Color.GRAY);
 		JButton c1 = new JButton("Color ▆");
 		c1.setForeground(Color.DARK_GRAY);
 		colorSlot.add(c1);
 		JPanel temp = tool.getToolBar();
-		
-		temp.add(colorSlot);		
+	*/	
+		//temp.add(colorSlot);		
 		
 		//인터페이스 구축 
 		Container contentPane = frame.getContentPane();
-		contentPane.add(temp, BorderLayout.WEST);
+	//  contentPane.add(temp, BorderLayout.WEST);
+		contentPane.add(tool.getToolBar(), BorderLayout.WEST);
 		contentPane.add(canvers.getCanvers());
 		contentPane.add(bar.getMenuBar(), BorderLayout.NORTH);
 		
@@ -48,6 +51,37 @@ public class PaintFrame extends Frame{
 		frame.setVisible(true);
 	}
 
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	
 }
 
 
