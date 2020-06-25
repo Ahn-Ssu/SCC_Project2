@@ -8,12 +8,9 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 public class ToolBarMaker {
-
+	private JPanel toolPanel ;
+	
 	public ToolBarMaker() {
-		// TODO Auto-generated constructor stub
-	}
-	// 툴바 생
-	public JPanel getToolBar() {
 		JPanel tempPanel = new JPanel();
 		GridLayout toolLayout = new GridLayout(12,1);
 		
@@ -65,6 +62,10 @@ public class ToolBarMaker {
 		
 		tempPanel.setLayout(toolLayout);
 		
-		return tempPanel;
+		toolPanel = tempPanel;
+	}
+	// 툴바 생
+	public JPanel getToolBar() {
+		return toolPanel;
 	}
 }

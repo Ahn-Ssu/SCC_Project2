@@ -6,14 +6,16 @@ import javax.swing.JPanel;
 
 public class CanversMaker {
 
+	private JPanel canversPanel;
 	public CanversMaker() {
-		// TODO Auto-generated constructor stub
-	}
+		JPanel tempPanel = new JPanel();
+		tempPanel.setBackground(Color.WHITE);
+		canversPanel = tempPanel;
+		}
 
 	
 	public JPanel getCanvers() {
-		JPanel canversPanel = new JPanel();
-		canversPanel.setBackground(Color.WHITE);
+		
 		return canversPanel;
 	}
 	
