@@ -12,7 +12,7 @@ import javax.swing.SwingConstants;
 
 public class ToolBarMaker implements ActionListener {
 	private JPanel toolPanel ;
-	private JButton s1, s2, p1, p2, b1, b2, f1, f2, f3, f4, f5, f6, f7, f8, c1;
+	private JButton d1, d2, s1, s2, p1, p2, b1, b2, f1, f2, f3, f4, f5, f6, f7, f8, c1;
 	
 	private ColorSelector ToolColorEditor = new ColorSelector();
 	private Color nowColor=Color.DARK_GRAY;
@@ -20,21 +20,30 @@ public class ToolBarMaker implements ActionListener {
 	private int thickness = 2;
 	private int mode = 2;
 	private int modeType = 1;
+	private boolean fillOrEmpty = false;
 	
 	public ToolBarMaker() {
 		JPanel tempPanel = new JPanel();
 		tempPanel.setBackground(Color.GRAY);
-		GridLayout toolLayout = new GridLayout(13,1);
+		GridLayout toolLayout = new GridLayout(15,1);
 		
-		
-		JLabel selectionTag = new JLabel("Mouse Mode",SwingConstants.CENTER);
+		JLabel zTag = new JLabel("Undo / Redo",SwingConstants.CENTER);
+		JPanel zSlot = new JPanel(new GridLayout(1,2));
+		zSlot.setBackground(Color.GRAY);
+		d1 = new JButton ("⟲");
+		d2 = new JButton ("⟳");
+		d2.setBackground(Color.LIGHT_GRAY);
+		d1.setToolTipText("Undo, can move back worked");
+		d2.setToolTipText("Redo, can move front worked");
+		zSlot.add(d1);zSlot.add(d2);
+		JLabel selectionTag = new JLabel("Shape type",SwingConstants.CENTER);
 		JPanel selectionSlot = new JPanel(new GridLayout(1,2));
 		selectionSlot.setBackground(Color.GRAY);
-		s1 = new JButton ("Click");
-		s2 = new JButton ("Select");
+		s1 = new JButton ("Fill up");
+		s2 = new JButton ("Empty out");
 		s2.setBackground(Color.LIGHT_GRAY);
-		s1.setToolTipText("Click mode, can click object");
-		s2.setToolTipText("Select mode, can select object");
+		s1.setToolTipText("Fill up mode, can draw shape that fill up");
+		s2.setToolTipText("Empty out mode, can draw shape that empty up");
 		selectionSlot.add(s1);selectionSlot.add(s2);
 		JLabel penTag = new JLabel("Pen / Eraser",SwingConstants.CENTER);
 		JPanel penSlot = new JPanel(new GridLayout(1,2));
@@ -89,7 +98,8 @@ public class ToolBarMaker implements ActionListener {
 		c1.setToolTipText("Changeing the color current color, defualt BLACK");
 		colorSlot.add(c1);
 		
-		
+		tempPanel.add(zTag);
+		tempPanel.add(zSlot);
 		tempPanel.add(selectionTag);
 		tempPanel.add(selectionSlot);
 		tempPanel.add(penTag);
@@ -109,6 +119,8 @@ public class ToolBarMaker implements ActionListener {
 		toolPanel = tempPanel;
 		
 		//버튼 이벤트 
+		d1.addActionListener(this);
+		d2.addActionListener(this);		
 		s1.addActionListener(this);
 		s2.addActionListener(this);
 		p1.addActionListener(this);
@@ -138,13 +150,19 @@ public class ToolBarMaker implements ActionListener {
 			nowColor = ToolColorEditor.getColor();
 			c1.setForeground(nowColor);
 		}
-		else if(e.getActionCommand() == "Click") {
-			System.out.println("Click");
-			mode = 1;modeType =1;
+		else if(e.getActionCommand() == "⟲") {
+			System.out.println("⟲ undo");
 		}
-		else if(e.getActionCommand() == "Select") {
-			System.out.println("Select");
-			mode = 1;modeType =2;
+		else if(e.getActionCommand() == "⟳") {
+			System.out.println("⟳ redo");
+		}
+		else if(e.getActionCommand() == "Fill up") {
+			System.out.println("Fill up");
+			fillOrEmpty = true;
+		}
+		else if(e.getActionCommand() == "Empty out") {
+			System.out.println("Empty out");
+			fillOrEmpty = false;
 		}
 		else if(e.getActionCommand() == "✎") {
 			System.out.println("✎");
@@ -208,5 +226,8 @@ public class ToolBarMaker implements ActionListener {
 	}
 	public int getThickness() {
 		return thickness;
+	}
+	public boolean isFillOrEmpty() {
+		return fillOrEmpty;
 	}
 }
