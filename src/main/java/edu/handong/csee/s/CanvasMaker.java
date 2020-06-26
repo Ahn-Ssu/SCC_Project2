@@ -4,19 +4,19 @@ import java.awt.Color;
 
 import javax.swing.JPanel;
 
-public class CanversMaker {
+public class CanvasMaker {
 
-	private JPanel canversPanel;
-	public CanversMaker() {
+	private JPanel canvasPanel;
+	public CanvasMaker() {
 		JPanel tempPanel = new JPanel();
 		tempPanel.setBackground(Color.WHITE);
-		canversPanel = tempPanel;
+		canvasPanel = tempPanel;
 		}
 
 	
 	public JPanel getCanvers() {
-		
-		return canversPanel;
+		return canvasPanel;
 	}
+	
 	
 }
