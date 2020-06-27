@@ -254,4 +254,17 @@ public class ToolBarMaker implements ActionListener {
 	public int getRedo() {
 		return redo;
 	}
+	public void resetAll() {
+		nowLineColor=Color.DARK_GRAY;
+		nowInnerColor = Color.DARK_GRAY;
+		//default setting
+		thickness = 2;
+		mode = 2;
+		modeType = 1;
+		fillOrEmpty = false;
+		undo = 0;
+		redo = 0;
+		c1.setForeground(nowLineColor);
+		c2.setForeground(nowInnerColor);
+	}
 }

@@ -25,7 +25,8 @@ import javax.swing.JFrame;
 
 
 public class Sketch extends JComponent implements MouseMotionListener, MouseListener {
-	
+	// 분할한 클래스에서 현재 그리고 있는 캔버스를 같이 이용하기 위함
+	// Singletone set up
 	static Sketch instance;
 	
 	private Color nowColor;
@@ -34,10 +35,12 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	private int nowModeType;
 	private int nowThickness;
 	private boolean fillUp;
-	private static int undoCount;
+	
+	private int undoCount;
 	private int redoCount;
 	
 	private boolean doNewDraw;
+	private boolean doClear;
 	private AlphaComposite alphaComposite;
 	
 	private Point startPoint;
@@ -63,45 +66,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		return instance;
 	}
 
-	public void paintComponent(Graphics g) {
-		Graphics2D g2 = (Graphics2D) g;
-//		g2.setPaint(nowColor);
-//		g2.setStroke(new BasicStroke(nowThickness));
-		
-		System.out.println("Paint");
 
-		// 현재 사용자가 지정한 "지금" 그릴 정보들을 임시 변수에다가 저장 
-		 Color tempColor = nowColor;
-		 Color tempInnerColor = nowInnerColor;
-		 int tempThickness = nowThickness;
-		 
-		 int tempMode = nowMode;
-		 int tempModeType = nowModeType;
-		 boolean tempDoFill = fillUp;
-		 Point tempStartPoint = startPoint;
-		 Point tempEndPoint = endPoint;
-		
-
-		pastSketch(g2);
-		
-		//다 그렸으면 임시값을 현재 필드에 다시 저장 
-		nowColor = tempColor;
-		nowInnerColor = tempInnerColor;
-		nowMode = tempMode;
-		nowModeType = tempModeType;
-		nowThickness = tempThickness;
-		fillUp = tempDoFill;
-		startPoint = tempStartPoint;
-		endPoint = tempEndPoint;
-		
-		if(doNewDraw) {
-			g2.setPaint(nowColor);
-			g2.setStroke(new BasicStroke(nowThickness));
-			g2.setComposite(alphaComposite);
-			undoRedoBuffer.clear();
-			sketchUp(g2);
-		}
-	}
 	
 	public void doUndo() {
 		undoCount = tool.getUndo();
@@ -134,28 +99,172 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	}
 	
 	public void newCanvas() {
-		
+		workedShape.clear();
+		undoRedoBuffer.clear();
+		tool.resetAll();
+		repaint();
 	}
 	
+	public void allClear() {
+//	g2.clearRect( , , , ,) 
+		doClear = true;
+		repaint();
+		System.out.println(doClear);
+	}
+
+
+	public void paintComponent(Graphics g) {
+		Graphics2D g2 = (Graphics2D) g;
+		
+		// 현재 사용자가 지정한 "지금" 그릴 정보들을 임시 변수에다가 저장 
+		 Color tempColor = nowColor;
+		 Color tempInnerColor = nowInnerColor;
+		 int tempThickness = nowThickness;
+		 
+		 int tempMode = nowMode;
+		 int tempModeType = nowModeType;
+		 boolean tempDoFill = fillUp;
+		 Point tempStartPoint = startPoint;
+		 Point tempEndPoint = endPoint;
+		
+
+		pastSketch(g2);
+		
+		
+		//화면 클리어, 하얀화면(배경화면)을 기준으로 잡고 버튼이 눌렸을때 프레임위에 아주 큰 하얀 상자를 위에 올려 씌움
+		// ctrl + A 선택해서 전부 날려도 ^+Z 로 다시 다 생성 가능한 것을 반영, undo / redo rksmd
+		if(doClear) {
+			
+			nowColor = Color.WHITE;;
+			nowInnerColor = Color.WHITE;
+			nowMode = 4;
+			nowModeType = 4;
+			nowThickness = 4;
+			fillUp = true;
+			startPoint = new Point(0,0);
+			endPoint = new Point(20000,20000);
+			g2.setPaint(nowColor);
+			g2.setStroke(new BasicStroke(nowThickness));
+			sketchUp(g2);
+			System.out.println("Paint doClear");
+			workedShape.add(new PaintedObject(nowColor,nowInnerColor,nowMode,nowModeType,nowThickness,fillUp,startPoint,endPoint));
+			
+			doClear = false;
+		}
+		
+		
+		//다 그렸으면 임시값을 현재 필드에 다시 저장 
+		nowColor = tempColor;
+		nowInnerColor = tempInnerColor;
+		nowMode = tempMode;
+		nowModeType = tempModeType;
+		nowThickness = tempThickness;
+		fillUp = tempDoFill;
+		startPoint = tempStartPoint;
+		endPoint = tempEndPoint;
+		 if(doNewDraw) {
+			g2.setPaint(nowColor);
+			g2.setStroke(new BasicStroke(nowThickness));
+			g2.setComposite(alphaComposite);
+			undoRedoBuffer.clear();
+			sketchUp(g2);
+		}
+		
+	}
 	
 	public void pastSketch(Graphics2D g2) {
 		 //반복문을 통해 이전 작업 결과 다시 그리기 
 		for(int queueNumber = 0 ; queueNumber <workedShape.size() ; queueNumber++) {
-			//g2에 그렸었던 색정보와 선 굵기 정도를 가져옴 
-			g2.setPaint(workedShape.get(queueNumber).theColor);
-			g2.setStroke(new BasicStroke(workedShape.get(queueNumber).theThickness));
-			//나머지 정보를 현재 필드에다가 저장해놓고 메소드 호출
+			//정보를 현재 필드에다가 저장해놓고 메소드 호출
+			nowColor = workedShape.get(queueNumber).theColor;
 			nowInnerColor = workedShape.get(queueNumber).theInnerColor;
+			nowThickness = workedShape.get(queueNumber).theThickness;
 			nowMode = workedShape.get(queueNumber).theMode;
 			nowModeType = workedShape.get(queueNumber).theModeType;
 			fillUp = workedShape.get(queueNumber).doFill;
 			startPoint = workedShape.get(queueNumber).theStartPoint;
 			endPoint = workedShape.get(queueNumber).theEndPoint;
 			
+			//g2에 그렸었던 색정보와 선 굵기 정도를 가져옴 
+			g2.setPaint(nowColor);
+			g2.setStroke(new BasicStroke(nowThickness));
+			
+			
 			// 셋업된 정보로 그리기
 			sketchUp(g2);
 		}
 	}
+	
+
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		endPoint = e.getPoint();
+		doNewDraw = true;
+		alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3F);
+		if(nowMode == 2 && nowModeType == 1) {
+			poly.lineTo(e.getX(), e.getY());
+			repaint();
+		}
+		else if(nowMode == 4) { // 도형 입력일때 
+			repaint();				
+		}
+		
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		poly.moveTo(e.getX(), e.getY());
+		
+	}
+	@Override
+	public void mousePressed(MouseEvent e) {
+
+		nowMode = tool.getMode();
+		nowModeType = tool.getModeType();
+		nowColor = tool.getNowColor();
+		nowInnerColor = tool.getNowInnerColor();
+		startPoint = e.getPoint();
+		endPoint = e.getPoint();
+		nowThickness = tool.getThickness();
+		fillUp = tool.isFillOrEmpty();
+		
+
+		
+		
+		System.out.println("mode "+nowMode);
+		System.out.println("mode type " + nowModeType);
+		System.out.println("color " +nowColor);
+		System.out.println("inner color " + nowColor);
+		System.out.println(nowColor==nowInnerColor);
+// 		System.out.println(nowColor.equals(nowInnerColor));
+		System.out.println("x :" + startPoint.x);
+		System.out.println("y :" + startPoint.y);
+		System.out.println("Thickness "+nowThickness);
+		System.out.println("Fill up? :"+ fillUp);
+			
+	}
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		endPoint = e.getPoint();
+		alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1F);
+			if(nowMode == 2 && nowModeType == 1) {
+			poly.lineTo(e.getX(), e.getY());
+			repaint();
+		}
+		else if(nowMode == 4) { // 도형 입력일때 
+			repaint();			
+		}
+			workedShape.add(new PaintedObject(nowColor,nowInnerColor,nowMode,nowModeType,nowThickness,fillUp, startPoint,endPoint));
+
+		doNewDraw = false;
+	}
+	@Override
+	public void mouseClicked(MouseEvent e) { 	}
+	@Override
+	public void mouseEntered(MouseEvent e) {	}
+	@Override
+	public void mouseExited(MouseEvent e) {	}
+	
 	
 	public void sketchUp(Graphics2D g2) {
 		if(nowMode == 2 && nowModeType == 1) {
@@ -345,104 +454,11 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 				}
 				
 			}
-
+			
 			} // end of draw if statement
+		
 	}
 	
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		endPoint = e.getPoint();
-		doNewDraw = true;
-		alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3F);
-		if(nowMode == 2 && nowModeType == 1) {
-			poly.lineTo(e.getX(), e.getY());
-			repaint();
-		}
-		else if(nowMode == 4) { // 도형 입력일때 
-			repaint();
-/*			if(nowModeType == 1) { // 직선 
-				repaint();
-			}
-			else if(nowModeType == 2) { // 원 
-				repaint();
-			}
-			else if(nowModeType == 3) { // 세모 
-				repaint();
-			}
-			else if(nowModeType == 4) { // 네모 
-				repaint();
-			}
-			else if(nowModeType == 5) { //  마름모  
-				repaint();
-			}
-			else if(nowModeType == 6) { //  평행사변
-				repaint();
-			}
-			else if(nowModeType == 7) { //  오각형   
-				repaint();
-			}
-			else if(nowModeType == 8) { //  별 
-				repaint();
-			}
-*/						
-		}
-		
-	}
-
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		poly.moveTo(e.getX(), e.getY());
-		
-	}
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		nowMode = tool.getMode();
-		nowModeType = tool.getModeType();
-		nowColor = tool.getNowColor();
-		nowInnerColor = tool.getNowInnerColor();
-		startPoint = e.getPoint();
-		endPoint = e.getPoint();
-		nowThickness = tool.getThickness();
-		fillUp = tool.isFillOrEmpty();
-		
-		System.out.println("mode "+nowMode);
-		System.out.println("mode type " + nowModeType);
-		System.out.println("color " +nowColor);
-		System.out.println("inner color " + nowColor);
-		System.out.println(nowColor==nowInnerColor);
-// 		System.out.println(nowColor.equals(nowInnerColor));
-		System.out.println("x :" + startPoint.x);
-		System.out.println("y :" + startPoint.y);
-		System.out.println("Thickness "+nowThickness);
-		System.out.println("Fill up? :"+ fillUp);
-		
-	}
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		endPoint = e.getPoint();
-		alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1F);
-		workedShape.add(new PaintedObject(nowColor,nowInnerColor,nowMode,nowModeType,nowThickness,fillUp,startPoint,endPoint));
-		if(nowMode == 2 && nowModeType == 1) {
-			poly.lineTo(e.getX(), e.getY());
-			repaint();
-		}
-		else if(nowMode == 4) { // 도형 입력일때 
-			repaint();			
-		}
-		
-		doNewDraw = false;
-	}
-	@Override
-	public void mouseClicked(MouseEvent e) { 	}
-	@Override
-	public void mouseEntered(MouseEvent e) {	}
-	@Override
-	public void mouseExited(MouseEvent e) {	}
-	
-	public static void undo() {
-		
-	}
 	
 	public static void main(String[] args) {
 		JFrame f = new JFrame("Studio A");
@@ -461,5 +477,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 
 		f.setVisible(true);
 	}
+
+	
 
 }
