@@ -7,6 +7,7 @@ public class PaintedObject {
 
 
 	public Color theColor;
+	public Color theInnerColor;
 	public int theMode;
 	public int theModeType;
 	public int theThickness;
@@ -15,8 +16,9 @@ public class PaintedObject {
 	public Point theEndPoint;
 	
 	
-	public PaintedObject(Color theColor, int theMode, int theModeType, int theThickness, boolean doFill, Point theStartPoint, Point theEndPoint ) {
+	public PaintedObject(Color theColor,Color theInnerColor, int theMode, int theModeType, int theThickness, boolean doFill, Point theStartPoint, Point theEndPoint ) {
 		this.theColor = theColor;
+		this.theInnerColor = theInnerColor;
 		this.theMode = theMode;
 		this.theModeType = theModeType;
 		this.theThickness = theThickness;

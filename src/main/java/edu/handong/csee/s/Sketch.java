@@ -26,6 +26,7 @@ import javax.swing.JFrame;
 public class Sketch extends JComponent implements MouseMotionListener, MouseListener {
 	
 	private Color nowColor;
+	private Color nowInnerColor;
 	private int nowMode;
 	private int nowModeType;
 	private int nowThickness;
@@ -57,6 +58,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		
 		// 현재 사용자가 지정한 "지금" 그릴 정보들을 임시 변수에다가 저장 
 		 Color tempColor = nowColor;
+		 Color tempInnerColor = nowInnerColor;
 		 int tempThickness = nowThickness;
 		 
 		 int tempMode = nowMode;
@@ -72,12 +74,13 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			g2.setPaint(workedShape.get(queueNumber).theColor);
 			g2.setStroke(new BasicStroke(workedShape.get(queueNumber).theThickness));
 			//나머지 정보를 현재 필드에다가 저장해놓고 메소드 호출
+			nowInnerColor = workedShape.get(queueNumber).theInnerColor;
 			nowMode = workedShape.get(queueNumber).theMode;
 			nowModeType = workedShape.get(queueNumber).theModeType;
 			fillUp = workedShape.get(queueNumber).doFill;
 			startPoint = workedShape.get(queueNumber).theStartPoint;
 			endPoint = workedShape.get(queueNumber).theEndPoint;
-		
+			
 			// 셋업된 정보로 그리기
 			sketchUp(g2);
 		}
@@ -85,6 +88,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		
 		//다 그렸으면 임시값을 현재 필드에 다시 저장 
 		nowColor = tempColor;
+		nowInnerColor = tempInnerColor;
 		nowMode = tempMode;
 		nowModeType = tempModeType;
 		nowThickness = tempThickness;
@@ -109,11 +113,21 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			}
 			else if(nowModeType == 2) { // 원 
 				if(fillUp) {
+					g2.setColor(nowInnerColor);
 					g2.fillOval(
 							Math.min(endPoint.x,startPoint.x),
 							Math.min(endPoint.y,startPoint.y), 
 							Math.abs(endPoint.x-startPoint.x),
 							Math.abs(endPoint.y-startPoint.y));
+					if(nowColor!=nowInnerColor) {
+						g2.setColor(nowColor);
+						g2.drawOval(
+								Math.min(endPoint.x,startPoint.x),
+								Math.min(endPoint.y,startPoint.y), 
+								Math.abs(endPoint.x-startPoint.x),
+								Math.abs(endPoint.y-startPoint.y));
+					}
+					
 				}
 				else {
 					g2.drawOval(
@@ -126,10 +140,18 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			}
 			else if(nowModeType == 3) { // 세모 
 				if(fillUp) {
+					g2.setColor(nowInnerColor);
 					g2.fillPolygon(
 							new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
 							new int[] {endPoint.y, startPoint.y, endPoint.y},
 							3);
+					if(nowColor!=nowInnerColor) {
+						g2.setColor(nowColor);
+						g2.drawPolygon(
+								new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
+								new int[] {endPoint.y, startPoint.y, endPoint.y},
+								3);
+						}
 				}
 				else {
 					g2.drawPolygon(
@@ -141,11 +163,20 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			}
 			else if(nowModeType == 4) { // 네모 
 				if(fillUp) {
+					g2.setColor(nowInnerColor);
 					g2.fillRect(
 							Math.min(endPoint.x,startPoint.x),
 							Math.min(endPoint.y,startPoint.y), 
 							Math.abs(endPoint.x-startPoint.x),
 							Math.abs(endPoint.y-startPoint.y));
+					if(nowColor!=nowInnerColor) {
+						g2.setColor(nowColor);
+						g2.drawRect(
+								Math.min(endPoint.x,startPoint.x),
+								Math.min(endPoint.y,startPoint.y), 
+								Math.abs(endPoint.x-startPoint.x),
+								Math.abs(endPoint.y-startPoint.y));
+						}
 				}
 				else {
 					g2.drawRect(
@@ -158,10 +189,18 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			}
 			else if(nowModeType == 5) { //  마름모  
 				if(fillUp) {
+					g2.setColor(nowInnerColor);
 					g2.fillPolygon(
 							new int[] {startPoint.x,(startPoint.x+endPoint.x)/2, endPoint.x,(startPoint.x+endPoint.x)/2},
 							new int[] {(startPoint.y+endPoint.y)/2, startPoint.y,  (startPoint.y+endPoint.y)/2, endPoint.y},
 									4);
+					if(nowColor!=nowInnerColor) {
+						g2.setColor(nowColor);
+						g2.drawPolygon(
+								new int[] {startPoint.x,(startPoint.x+endPoint.x)/2, endPoint.x,(startPoint.x+endPoint.x)/2},
+								new int[] {(startPoint.y+endPoint.y)/2, startPoint.y,  (startPoint.y+endPoint.y)/2, endPoint.y},
+										4);
+						}
 				}
 				else {
 					g2.drawPolygon(
@@ -173,10 +212,18 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			}
 			else if(nowModeType == 6) { // 평행사변
 				if(fillUp) {
+					g2.setColor(nowInnerColor);
 					g2.fillPolygon(
 							new int[] {(int)(startPoint.x+(endPoint.x-startPoint.x)*0.2),endPoint.x, (int)(startPoint.x +(endPoint.x-startPoint.x)*0.8),startPoint.x},
 							new int[] {startPoint.y, startPoint.y, endPoint.y,  endPoint.y},
 									4);
+					if(nowColor!=nowInnerColor) {
+						g2.setColor(nowColor);
+						g2.drawPolygon(
+								new int[] {(int)(startPoint.x+(endPoint.x-startPoint.x)*0.2),endPoint.x, (int)(startPoint.x +(endPoint.x-startPoint.x)*0.8),startPoint.x},
+								new int[] {startPoint.y, startPoint.y, endPoint.y,  endPoint.y},
+										4);
+						}
 				}
 				else {
 					g2.drawPolygon(
@@ -188,10 +235,18 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			}
 			else if(nowModeType == 7){ //  오각
 				if(fillUp) {
+					g2.setColor(nowInnerColor);
 					g2.fillPolygon(
 							new int[] {(startPoint.x+endPoint.x)/2, startPoint.x, (int)(startPoint.x+(endPoint.x - startPoint.x)*0.19),(int)(startPoint.x+(endPoint.x - startPoint.x)*0.81), endPoint.x },
 							new int[] {startPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38), endPoint.y,endPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38)}
 									,5);
+					if(nowColor!=nowInnerColor) {
+						g2.setColor(nowColor);
+						g2.drawPolygon(
+								new int[] {(startPoint.x+endPoint.x)/2, startPoint.x, (int)(startPoint.x+(endPoint.x - startPoint.x)*0.19),(int)(startPoint.x+(endPoint.x - startPoint.x)*0.81), endPoint.x },
+								new int[] {startPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38), endPoint.y,endPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38)}
+										,5);
+						}
 				}
 				else {
 					g2.drawPolygon(
@@ -203,6 +258,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			}
 			else if(nowModeType == 8) { // 삼각교차별 
 				if(fillUp) {
+					g2.setColor(nowInnerColor);
 					g2.fillPolygon(
 							new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
 							new int[] {(int)(startPoint.y + (endPoint.y-startPoint.y)*0.75), startPoint.y, (int)(startPoint.y + (endPoint.y-startPoint.y)*0.75)},
@@ -211,6 +267,17 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 							new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
 							new int[] {(int)(endPoint.y - (endPoint.y-startPoint.y)*0.75), endPoint.y, (int)(endPoint.y - (endPoint.y-startPoint.y)*0.75)},
 							3);
+					if(nowColor!=nowInnerColor) {
+						g2.setColor(nowColor);
+						g2.drawPolygon(
+								new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
+								new int[] {(int)(startPoint.y + (endPoint.y-startPoint.y)*0.75), startPoint.y, (int)(startPoint.y + (endPoint.y-startPoint.y)*0.75)},
+								3);
+						g2.drawPolygon(
+								new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
+								new int[] {(int)(endPoint.y - (endPoint.y-startPoint.y)*0.75), endPoint.y, (int)(endPoint.y - (endPoint.y-startPoint.y)*0.75)},
+								3);
+						}
 				}
 				else {
 					g2.drawPolygon(
@@ -278,6 +345,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		nowMode = tool.getMode();
 		nowModeType = tool.getModeType();
 		nowColor = tool.getNowColor();
+		nowInnerColor = tool.getNowInnerColor();
 		startPoint = e.getPoint();
 		endPoint = e.getPoint();
 		nowThickness = tool.getThickness();
@@ -286,6 +354,9 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		System.out.println("mode "+nowMode);
 		System.out.println("mode type " + nowModeType);
 		System.out.println("color " +nowColor);
+		System.out.println("inner color " + nowColor);
+		System.out.println(nowColor==nowInnerColor);
+// 		System.out.println(nowColor.equals(nowInnerColor));
 		System.out.println("x :" + startPoint.x);
 		System.out.println("y :" + startPoint.y);
 		System.out.println("Thickness "+nowThickness);
@@ -295,7 +366,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		endPoint = e.getPoint();
-		workedShape.add(new PaintedObject(nowColor,nowMode,nowModeType,nowThickness,fillUp,startPoint,endPoint));
+		workedShape.add(new PaintedObject(nowColor,nowInnerColor,nowMode,nowModeType,nowThickness,fillUp,startPoint,endPoint));
 		
 	}
 	@Override

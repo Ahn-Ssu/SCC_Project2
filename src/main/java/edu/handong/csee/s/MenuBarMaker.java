@@ -63,6 +63,7 @@ public class MenuBarMaker implements ActionListener {
 		
 		if(e.getActionCommand() == "새로 만들기 / Create new Canvers") {
 			System.out.println("new");
+		
 		}/*
 		else if(e.getActionCommand() == "배경색 설정 / set Background Color") {
 			System.out.println("back color");

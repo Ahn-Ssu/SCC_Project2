@@ -12,10 +12,11 @@ import javax.swing.SwingConstants;
 
 public class ToolBarMaker implements ActionListener {
 	private JPanel toolPanel ;
-	private JButton d1, d2, s1, s2, p1, p2, b1, b2, f1, f2, f3, f4, f5, f6, f7, f8, c1;
+	private JButton d1, d2, s1, s2, p1, p2, b1, b2, f1, f2, f3, f4, f5, f6, f7, f8, c1, c2;
 	
 	private ColorSelector ToolColorEditor = new ColorSelector();
-	private Color nowColor=Color.DARK_GRAY;
+	private Color nowLineColor=Color.DARK_GRAY;
+	private Color nowInnerColor = Color.DARK_GRAY;
 	//default setting
 	private int thickness = 2;
 	private int mode = 2;
@@ -91,12 +92,15 @@ public class ToolBarMaker implements ActionListener {
 		shapeSlot3.add(f5);shapeSlot3.add(f6);
 		shapeSlot4.add(f7);shapeSlot4.add(f8);
 		JLabel colorTag = new JLabel("Color",SwingConstants.CENTER);
-		JPanel colorSlot = new JPanel(new GridLayout(1,1));
+		JPanel colorSlot = new JPanel(new GridLayout(1,2));
 		colorSlot.setBackground(Color.GRAY);
-		c1 = new JButton("Color ▆");
+		c1 = new JButton("Line Color ▆");
+		c2 = new JButton("Inner Color ▆");
 		c1.setForeground(Color.DARK_GRAY);
+		c2.setForeground(Color.DARK_GRAY);
 		c1.setToolTipText("Changeing the color current color, defualt BLACK");
-		colorSlot.add(c1);
+		c2.setToolTipText("Changeing the color current inner color, defualt BLACK /n If not set, follow the default value");
+		colorSlot.add(c1);colorSlot.add(c2);
 		
 		tempPanel.add(zTag);
 		tempPanel.add(zSlot);
@@ -119,23 +123,13 @@ public class ToolBarMaker implements ActionListener {
 		toolPanel = tempPanel;
 		
 		//버튼 이벤트 
-		d1.addActionListener(this);
-		d2.addActionListener(this);		
-		s1.addActionListener(this);
-		s2.addActionListener(this);
-		p1.addActionListener(this);
-		p2.addActionListener(this);
-		b1.addActionListener(this);
-		b2.addActionListener(this);
-		f1.addActionListener(this);
-		f2.addActionListener(this);
-		f3.addActionListener(this);
-		f4.addActionListener(this);
-		f5.addActionListener(this);
-		f6.addActionListener(this);
-		f7.addActionListener(this);
-		f8.addActionListener(this);
-		c1.addActionListener(this);
+		d1.addActionListener(this);d2.addActionListener(this);		
+		s1.addActionListener(this);s2.addActionListener(this);
+		p1.addActionListener(this);p2.addActionListener(this);
+		b1.addActionListener(this);b2.addActionListener(this);
+		f1.addActionListener(this);f2.addActionListener(this);f3.addActionListener(this);f4.addActionListener(this);
+		f5.addActionListener(this);f6.addActionListener(this);f7.addActionListener(this);f8.addActionListener(this);
+		c1.addActionListener(this);c2.addActionListener(this);
 		
 	}
 	// 툴바 생
@@ -144,11 +138,22 @@ public class ToolBarMaker implements ActionListener {
 	}
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if(e.getActionCommand() == "Color ▆") {
-			System.out.println("Color ▆");
+		if(e.getActionCommand() == "Line Color ▆") {
+			System.out.println("Line Color ▆");
 			ToolColorEditor.ColorSelect(ToolColorEditor.getColor());
-			nowColor = ToolColorEditor.getColor();
-			c1.setForeground(nowColor);
+			nowLineColor = ToolColorEditor.getColor();
+			c1.setForeground(nowLineColor);
+			if(fillOrEmpty && nowInnerColor == Color.DARK_GRAY) {
+				nowInnerColor = nowLineColor;
+				c2.setForeground(nowInnerColor);
+			}
+				
+		}
+		if(e.getActionCommand() == "Inner Color ▆") {
+			System.out.println("Inner Color ▆");
+			ToolColorEditor.ColorSelect(ToolColorEditor.getColor());
+			nowInnerColor = ToolColorEditor.getColor();
+			c2.setForeground(nowInnerColor);
 		}
 		else if(e.getActionCommand() == "⟲") {
 			System.out.println("⟲ undo");
@@ -159,6 +164,10 @@ public class ToolBarMaker implements ActionListener {
 		else if(e.getActionCommand() == "Fill up") {
 			System.out.println("Fill up");
 			fillOrEmpty = true;
+			if(nowInnerColor == Color.DARK_GRAY) {
+				nowInnerColor = nowLineColor;
+				c2.setForeground(nowInnerColor);
+			}
 		}
 		else if(e.getActionCommand() == "Empty out") {
 			System.out.println("Empty out");
@@ -222,7 +231,10 @@ public class ToolBarMaker implements ActionListener {
 		return modeType;
 	}
 	public Color getNowColor() {
-		return nowColor;
+		return nowLineColor;
+	}
+	public Color getNowInnerColor() {
+		return nowInnerColor;
 	}
 	public int getThickness() {
 		return thickness;
