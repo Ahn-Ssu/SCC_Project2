@@ -1,5 +1,6 @@
 package edu.handong.csee.s;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -25,13 +26,19 @@ import javax.swing.JFrame;
 
 public class Sketch extends JComponent implements MouseMotionListener, MouseListener {
 	
+	static Sketch instance;
+	
 	private Color nowColor;
 	private Color nowInnerColor;
 	private int nowMode;
 	private int nowModeType;
 	private int nowThickness;
 	private boolean fillUp;
+	private static int undoCount;
+	private int redoCount;
 	
+	private boolean doNewDraw;
+	private AlphaComposite alphaComposite;
 	
 	private Point startPoint;
 	private Point endPoint;
@@ -42,20 +49,27 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	GeneralPath poly = new GeneralPath();
 	
 	private ArrayList<PaintedObject> workedShape = new ArrayList<PaintedObject>(); 
+	private ArrayList<PaintedObject> undoRedoBuffer = new ArrayList<PaintedObject>();
 	
-	public Sketch() {
+	private Sketch() {
 		addMouseMotionListener(this);
 		addMouseListener(this);
 		poly.moveTo(300, 300);
 	}
 	
+	public static Sketch getInstance() {
+		if(instance ==null)
+			instance = new Sketch();
+		return instance;
+	}
+
 	public void paintComponent(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
 //		g2.setPaint(nowColor);
 //		g2.setStroke(new BasicStroke(nowThickness));
 		
-//		System.out.println("Paint");
-		
+		System.out.println("Paint");
+
 		// 현재 사용자가 지정한 "지금" 그릴 정보들을 임시 변수에다가 저장 
 		 Color tempColor = nowColor;
 		 Color tempInnerColor = nowInnerColor;
@@ -67,7 +81,64 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		 Point tempStartPoint = startPoint;
 		 Point tempEndPoint = endPoint;
 		
-		 
+
+		pastSketch(g2);
+		
+		//다 그렸으면 임시값을 현재 필드에 다시 저장 
+		nowColor = tempColor;
+		nowInnerColor = tempInnerColor;
+		nowMode = tempMode;
+		nowModeType = tempModeType;
+		nowThickness = tempThickness;
+		fillUp = tempDoFill;
+		startPoint = tempStartPoint;
+		endPoint = tempEndPoint;
+		
+		if(doNewDraw) {
+			g2.setPaint(nowColor);
+			g2.setStroke(new BasicStroke(nowThickness));
+			g2.setComposite(alphaComposite);
+			undoRedoBuffer.clear();
+			sketchUp(g2);
+		}
+	}
+	
+	public void doUndo() {
+		undoCount = tool.getUndo();
+		System.out.println("undo : " + tool.getUndo() + " "+ undoCount);
+		System.out.println("work size() : "+workedShape.size());
+		
+		
+		//LIFO, 스택처럼 제일 나중에 들어온 친구가 지워
+		if(undoCount>0 && workedShape.size() >0) {
+			//undoRedoBuffer에 redo할 경우를 대비, 저장 
+			undoRedoBuffer.add(workedShape.get(workedShape.size() - 1)); 
+			workedShape.remove(workedShape.size() - 1);
+		}
+		
+		repaint();
+	}
+	
+	public void doRedo() {
+		redoCount = tool.getRedo();
+		System.out.println("redo : " + tool.getRedo() + " "+ redoCount);
+		System.out.println("buffer size() : "+undoRedoBuffer.size());
+		
+		//LIFO, 스택처럼 동작 : 제일 최근에 그린 그림이  
+		if(redoCount>0 && undoRedoBuffer.size()>0) {
+			// 다시 작업 저장공간에 리턴 
+			workedShape.add(undoRedoBuffer.get(undoRedoBuffer.size()-1));
+			undoRedoBuffer.remove(undoRedoBuffer.size()-1);
+		}
+		repaint();
+	}
+	
+	public void newCanvas() {
+		
+	}
+	
+	
+	public void pastSketch(Graphics2D g2) {
 		 //반복문을 통해 이전 작업 결과 다시 그리기 
 		for(int queueNumber = 0 ; queueNumber <workedShape.size() ; queueNumber++) {
 			//g2에 그렸었던 색정보와 선 굵기 정도를 가져옴 
@@ -84,23 +155,6 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			// 셋업된 정보로 그리기
 			sketchUp(g2);
 		}
-		
-		
-		//다 그렸으면 임시값을 현재 필드에 다시 저장 
-		nowColor = tempColor;
-		nowInnerColor = tempInnerColor;
-		nowMode = tempMode;
-		nowModeType = tempModeType;
-		nowThickness = tempThickness;
-		fillUp = tempDoFill;
-		startPoint = tempStartPoint;
-		endPoint = tempEndPoint;
-		
-		g2.setPaint(nowColor);
-		g2.setStroke(new BasicStroke(nowThickness));
-		
-		
-		sketchUp(g2);		
 	}
 	
 	public void sketchUp(Graphics2D g2) {
@@ -298,14 +352,15 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		endPoint = e.getPoint();
-		
+		doNewDraw = true;
+		alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3F);
 		if(nowMode == 2 && nowModeType == 1) {
 			poly.lineTo(e.getX(), e.getY());
 			repaint();
 		}
 		else if(nowMode == 4) { // 도형 입력일때 
-			if(nowModeType == 1) { // 직선 
-				poly.lineTo(e.getX(), e.getY());
+			repaint();
+/*			if(nowModeType == 1) { // 직선 
 				repaint();
 			}
 			else if(nowModeType == 2) { // 원 
@@ -329,7 +384,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			else if(nowModeType == 8) { //  별 
 				repaint();
 			}
-						
+*/						
 		}
 		
 	}
@@ -366,30 +421,35 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		endPoint = e.getPoint();
+		alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1F);
 		workedShape.add(new PaintedObject(nowColor,nowInnerColor,nowMode,nowModeType,nowThickness,fillUp,startPoint,endPoint));
+		if(nowMode == 2 && nowModeType == 1) {
+			poly.lineTo(e.getX(), e.getY());
+			repaint();
+		}
+		else if(nowMode == 4) { // 도형 입력일때 
+			repaint();			
+		}
 		
+		doNewDraw = false;
 	}
 	@Override
-	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void mouseClicked(MouseEvent e) { 	}
 	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void mouseEntered(MouseEvent e) {	}
 	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
+	public void mouseExited(MouseEvent e) {	}
+	
+	public static void undo() {
 		
 	}
+	
 	public static void main(String[] args) {
 		JFrame f = new JFrame("Studio A");
 		Container c = f.getContentPane();
 		c.setLayout(new BorderLayout());
 		c.add(tool.getToolBar(), BorderLayout.WEST);
-		c.add(new Sketch(), BorderLayout.CENTER);
+		c.add(Sketch.getInstance(), BorderLayout.CENTER);
 		c.setBackground(Color.WHITE);
 		f.setSize(1100, 700);
 		f.setJMenuBar(bar.getMenuBar());

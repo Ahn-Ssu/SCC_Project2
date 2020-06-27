@@ -22,6 +22,8 @@ public class ToolBarMaker implements ActionListener {
 	private int mode = 2;
 	private int modeType = 1;
 	private boolean fillOrEmpty = false;
+	private int undo = 0;
+	private int redo = 0;
 	
 	public ToolBarMaker() {
 		JPanel tempPanel = new JPanel();
@@ -157,9 +159,13 @@ public class ToolBarMaker implements ActionListener {
 		}
 		else if(e.getActionCommand() == "⟲") {
 			System.out.println("⟲ undo");
+			undo ++;
+			Sketch.getInstance().doUndo();
 		}
 		else if(e.getActionCommand() == "⟳") {
 			System.out.println("⟳ redo");
+			redo ++;
+			Sketch.getInstance().doRedo();
 		}
 		else if(e.getActionCommand() == "Fill up") {
 			System.out.println("Fill up");
@@ -183,7 +189,7 @@ public class ToolBarMaker implements ActionListener {
 		}
 		else if(e.getActionCommand() == "𝐁+") {
 			System.out.println("𝐁+");
-			if(thickness<8)
+			if(thickness<15)
 				thickness++;
 		}
 		else if(e.getActionCommand() == "𝑙-") {
@@ -241,5 +247,11 @@ public class ToolBarMaker implements ActionListener {
 	}
 	public boolean isFillOrEmpty() {
 		return fillOrEmpty;
+	}
+	public int getUndo() {
+		return undo;
+	}
+	public int getRedo() {
+		return redo;
 	}
 }
