@@ -53,8 +53,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	private ArrayList<PaintedObject> workedShape = new ArrayList<PaintedObject>(); 
 	private ArrayList<PaintedObject> undoRedoBuffer = new ArrayList<PaintedObject>();
 	private ArrayList<Point> pointStack = new ArrayList<Point>();
-	int[] stackedX ;
-	int[] stackedY ;
+
 	
 	private Sketch() {
 		addMouseMotionListener(this);
@@ -132,18 +131,14 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		 Point tempEndPoint = endPoint;
 		 ArrayList<Point> tempPointStack = pointStack;
 			
-		 stackedX = new int[pointStack.size()];
-		 stackedY = new int[pointStack.size()];
-		for(int i=0;i<pointStack.size(); i++){
-			stackedX[i] = pointStack.get(i).x;
-			stackedY[i] = pointStack.get(i).y;
-		}
+		 
 		pastSketch(g2);
 		
 		
 		//화면 클리어, 하얀화면(배경화면)을 기준으로 잡고 버튼이 눌렸을때 프레임위에 아주 큰 하얀 상자를 위에 올려 씌움
 		// ctrl + A 선택해서 전부 날려도 ^+Z 로 다시 다 생성 가능한 것을 반영, undo / redo rksmd
 		if(doClear) {
+			
 			
 			nowColor = Color.WHITE;;
 			nowInnerColor = Color.WHITE;
@@ -172,7 +167,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		fillUp = tempDoFill;
 		startPoint = tempStartPoint;
 		endPoint = tempEndPoint;
-		pointStack = tempPointStack;
+		pointStack = new ArrayList<>(tempPointStack);
 		
 		 if(doNewDraw) {
 			g2.setPaint(nowColor);
@@ -190,17 +185,18 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			//정보를 현재 필드에다가 저장해놓고 메소드 호출
 			nowColor = workedShape.get(queueNumber).theColor;
 			nowInnerColor = workedShape.get(queueNumber).theInnerColor;
-			
 			nowThickness = workedShape.get(queueNumber).theThickness;
-			
 			nowMode = workedShape.get(queueNumber).theMode;
 			nowModeType = workedShape.get(queueNumber).theModeType;
-			
 			fillUp = workedShape.get(queueNumber).doFill;
-			
 			startPoint = workedShape.get(queueNumber).theStartPoint;
 			endPoint = workedShape.get(queueNumber).theEndPoint;
-			pointStack = workedShape.get(queueNumber).thePointStack;
+			//참조타입이여서 얘는 딥카
+			pointStack = new ArrayList<>(workedShape.get(queueNumber).thePointStack);
+			System.out.println(pointStack.hashCode());
+			for(Point p : pointStack) {
+				System.out.println(p);
+			}
 			//System.out.println(poly.hashCode());
 			//g2에 그렸었던 색정보와 선 굵기 정도를 가져옴 
 			g2.setPaint(nowColor);
@@ -215,9 +211,14 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
+		// endPoint 최신화 
 		endPoint = e.getPoint();
+		// 그림이 그려지는 흔적을 마우스 드래그할떄 따라오게끔 
 		doNewDraw = true;
+		doStack = true;
 		alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3F);
+		
+		// 자유곡선 모드에 사용할 점 좌표 저
 		if(nowMode == 2 && nowModeType == 1 ) {
 				pointStack.add(new Point(e.getX(), e.getY()));
 				repaint();
@@ -229,14 +230,14 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		
+		pointStack.clear();
+		// 그림그릴 때 사용할 변수들 세
 		nowMode = tool.getMode();
 		nowModeType = tool.getModeType();
 		nowColor = tool.getNowColor();
 		nowInnerColor = tool.getNowInnerColor();
 		startPoint = e.getPoint();
 		endPoint = e.getPoint();
-		pointStack.add(e.getPoint());
 		nowThickness = tool.getThickness();
 		fillUp = tool.isFillOrEmpty();
 		
@@ -252,8 +253,10 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	}
 	@Override
 	public void mouseReleased(MouseEvent e) {
+		//endPoint 종결,투명도 0
 		endPoint = e.getPoint();
 		alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1F);
+		
 		
 		if(nowMode == 2 && nowModeType == 1) {
 			pointStack.add(new Point(e.getX(), e.getY()));
@@ -262,10 +265,13 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		else if(nowMode == 4) { // 도형 입력일때 
 			repaint();			
 		}
-			
+
+		
 		workedShape.add(new PaintedObject(pointStack,nowColor,nowInnerColor,nowMode,nowModeType,nowThickness,fillUp, startPoint,endPoint));
 		doNewDraw = false;
+
 		System.out.println("stack size :"+pointStack.size());	
+		
 	}
 	@Override
 	public void mouseClicked(MouseEvent e) { 	}
@@ -277,23 +283,42 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	public void mouseMoved(MouseEvent e) {	}
 	
 	public void sketchUp(Graphics2D g2) {
+		
 		if(nowMode == 2 && nowModeType == 1) { // 펜 자유곡선 
-			g2.drawPolyline(stackedX, stackedY, stackedX.length);
-		}
-		else if(nowMode == 4) { // 도형 입력일때 
-			if(nowModeType == 1) { // 직선 
-				g2.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
+			int[] stackedX = new int[pointStack.size()];
+			int[] stackedY = new int[pointStack.size()];
+			for(int i=0;i<pointStack.size(); i++){
+				stackedX[i] = pointStack.get(i).x;
+				stackedY[i] = pointStack.get(i).y;
 			}
-			else if(nowModeType == 2) { // 원 
-				if(fillUp) {
-					g2.setColor(nowInnerColor);
-					g2.fillOval(
-							Math.min(endPoint.x,startPoint.x),
-							Math.min(endPoint.y,startPoint.y), 
-							Math.abs(endPoint.x-startPoint.x),
-							Math.abs(endPoint.y-startPoint.y));
-					if(nowColor!=nowInnerColor) {
-						g2.setColor(nowColor);
+			g2.drawPolyline(stackedX, stackedY, pointStack.size());
+			
+		}
+		else {
+			if(nowMode == 4) { // 도형 입력일때 
+				if(nowModeType == 1) { // 직선 
+					
+					g2.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
+				}
+				else if(nowModeType == 2) { // 원 
+					if(fillUp) {
+						g2.setColor(nowInnerColor);
+						g2.fillOval(
+								Math.min(endPoint.x,startPoint.x),
+								Math.min(endPoint.y,startPoint.y), 
+								Math.abs(endPoint.x-startPoint.x),
+								Math.abs(endPoint.y-startPoint.y));
+						if(nowColor!=nowInnerColor) {
+							g2.setColor(nowColor);
+							g2.drawOval(
+									Math.min(endPoint.x,startPoint.x),
+									Math.min(endPoint.y,startPoint.y), 
+									Math.abs(endPoint.x-startPoint.x),
+									Math.abs(endPoint.y-startPoint.y));
+						}
+						
+					}
+					else {
 						g2.drawOval(
 								Math.min(endPoint.x,startPoint.x),
 								Math.min(endPoint.y,startPoint.y), 
@@ -302,146 +327,148 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 					}
 					
 				}
-				else {
-					g2.drawOval(
-							Math.min(endPoint.x,startPoint.x),
-							Math.min(endPoint.y,startPoint.y), 
-							Math.abs(endPoint.x-startPoint.x),
-							Math.abs(endPoint.y-startPoint.y));
-				}
-				
-			}
-			else if(nowModeType == 3) { // 세모 
-				if(fillUp) {
-					g2.setColor(nowInnerColor);
-					g2.fillPolygon(
-							new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
-							new int[] {endPoint.y, startPoint.y, endPoint.y},
-							3);
-					if(nowColor!=nowInnerColor) {
-						g2.setColor(nowColor);
+				else if(nowModeType == 3) { // 세모 
+					if(fillUp) {
+						g2.setColor(nowInnerColor);
+						g2.fillPolygon(
+								new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
+								new int[] {endPoint.y, startPoint.y, endPoint.y},
+								3);
+						if(nowColor!=nowInnerColor) {
+							g2.setColor(nowColor);
+							g2.drawPolygon(
+									new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
+									new int[] {endPoint.y, startPoint.y, endPoint.y},
+									3);
+							}
+					}
+					else {
 						g2.drawPolygon(
 								new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
 								new int[] {endPoint.y, startPoint.y, endPoint.y},
 								3);
-						}
+					}
+					
 				}
-				else {
-					g2.drawPolygon(
-							new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
-							new int[] {endPoint.y, startPoint.y, endPoint.y},
-							3);
-				}
-				
-			}
-			else if(nowModeType == 4) { // 네모 
-				if(fillUp) {
-					g2.setColor(nowInnerColor);
-					g2.fillRect(
-							Math.min(endPoint.x,startPoint.x),
-							Math.min(endPoint.y,startPoint.y), 
-							Math.abs(endPoint.x-startPoint.x),
-							Math.abs(endPoint.y-startPoint.y));
-					if(nowColor!=nowInnerColor) {
-						g2.setColor(nowColor);
+				else if(nowModeType == 4) { // 네모 
+					if(fillUp) {
+						g2.setColor(nowInnerColor);
+						g2.fillRect(
+								Math.min(endPoint.x,startPoint.x),
+								Math.min(endPoint.y,startPoint.y), 
+								Math.abs(endPoint.x-startPoint.x),
+								Math.abs(endPoint.y-startPoint.y));
+						if(nowColor!=nowInnerColor) {
+							g2.setColor(nowColor);
+							g2.drawRect(
+									Math.min(endPoint.x,startPoint.x),
+									Math.min(endPoint.y,startPoint.y), 
+									Math.abs(endPoint.x-startPoint.x),
+									Math.abs(endPoint.y-startPoint.y));
+							}
+					}
+					else {
 						g2.drawRect(
 								Math.min(endPoint.x,startPoint.x),
 								Math.min(endPoint.y,startPoint.y), 
 								Math.abs(endPoint.x-startPoint.x),
 								Math.abs(endPoint.y-startPoint.y));
-						}
+					}
+					
 				}
-				else {
-					g2.drawRect(
-							Math.min(endPoint.x,startPoint.x),
-							Math.min(endPoint.y,startPoint.y), 
-							Math.abs(endPoint.x-startPoint.x),
-							Math.abs(endPoint.y-startPoint.y));
-				}
-				
-			}
-			else if(nowModeType == 5) { //  마름모  
-				if(fillUp) {
-					g2.setColor(nowInnerColor);
-					g2.fillPolygon(
-							new int[] {startPoint.x,(startPoint.x+endPoint.x)/2, endPoint.x,(startPoint.x+endPoint.x)/2},
-							new int[] {(startPoint.y+endPoint.y)/2, startPoint.y,  (startPoint.y+endPoint.y)/2, endPoint.y},
-									4);
-					if(nowColor!=nowInnerColor) {
-						g2.setColor(nowColor);
+				else if(nowModeType == 5) { //  마름모  
+					if(fillUp) {
+						g2.setColor(nowInnerColor);
+						g2.fillPolygon(
+								new int[] {startPoint.x,(startPoint.x+endPoint.x)/2, endPoint.x,(startPoint.x+endPoint.x)/2},
+								new int[] {(startPoint.y+endPoint.y)/2, startPoint.y,  (startPoint.y+endPoint.y)/2, endPoint.y},
+										4);
+						if(nowColor!=nowInnerColor) {
+							g2.setColor(nowColor);
+							g2.drawPolygon(
+									new int[] {startPoint.x,(startPoint.x+endPoint.x)/2, endPoint.x,(startPoint.x+endPoint.x)/2},
+									new int[] {(startPoint.y+endPoint.y)/2, startPoint.y,  (startPoint.y+endPoint.y)/2, endPoint.y},
+											4);
+							}
+					}
+					else {
 						g2.drawPolygon(
 								new int[] {startPoint.x,(startPoint.x+endPoint.x)/2, endPoint.x,(startPoint.x+endPoint.x)/2},
 								new int[] {(startPoint.y+endPoint.y)/2, startPoint.y,  (startPoint.y+endPoint.y)/2, endPoint.y},
 										4);
-						}
+					}
+					
 				}
-				else {
-					g2.drawPolygon(
-							new int[] {startPoint.x,(startPoint.x+endPoint.x)/2, endPoint.x,(startPoint.x+endPoint.x)/2},
-							new int[] {(startPoint.y+endPoint.y)/2, startPoint.y,  (startPoint.y+endPoint.y)/2, endPoint.y},
-									4);
-				}
-				
-			}
-			else if(nowModeType == 6) { // 평행사변
-				if(fillUp) {
-					g2.setColor(nowInnerColor);
-					g2.fillPolygon(
-							new int[] {(int)(startPoint.x+(endPoint.x-startPoint.x)*0.2),endPoint.x, (int)(startPoint.x +(endPoint.x-startPoint.x)*0.8),startPoint.x},
-							new int[] {startPoint.y, startPoint.y, endPoint.y,  endPoint.y},
-									4);
-					if(nowColor!=nowInnerColor) {
-						g2.setColor(nowColor);
+				else if(nowModeType == 6) { // 평행사변
+					if(fillUp) {
+						g2.setColor(nowInnerColor);
+						g2.fillPolygon(
+								new int[] {(int)(startPoint.x+(endPoint.x-startPoint.x)*0.2),endPoint.x, (int)(startPoint.x +(endPoint.x-startPoint.x)*0.8),startPoint.x},
+								new int[] {startPoint.y, startPoint.y, endPoint.y,  endPoint.y},
+										4);
+						if(nowColor!=nowInnerColor) {
+							g2.setColor(nowColor);
+							g2.drawPolygon(
+									new int[] {(int)(startPoint.x+(endPoint.x-startPoint.x)*0.2),endPoint.x, (int)(startPoint.x +(endPoint.x-startPoint.x)*0.8),startPoint.x},
+									new int[] {startPoint.y, startPoint.y, endPoint.y,  endPoint.y},
+											4);
+							}
+					}
+					else {
 						g2.drawPolygon(
 								new int[] {(int)(startPoint.x+(endPoint.x-startPoint.x)*0.2),endPoint.x, (int)(startPoint.x +(endPoint.x-startPoint.x)*0.8),startPoint.x},
 								new int[] {startPoint.y, startPoint.y, endPoint.y,  endPoint.y},
 										4);
-						}
+					}
+					
 				}
-				else {
-					g2.drawPolygon(
-							new int[] {(int)(startPoint.x+(endPoint.x-startPoint.x)*0.2),endPoint.x, (int)(startPoint.x +(endPoint.x-startPoint.x)*0.8),startPoint.x},
-							new int[] {startPoint.y, startPoint.y, endPoint.y,  endPoint.y},
-									4);
-				}
-				
-			}
-			else if(nowModeType == 7){ //  오각
-				if(fillUp) {
-					g2.setColor(nowInnerColor);
-					g2.fillPolygon(
-							new int[] {(startPoint.x+endPoint.x)/2, startPoint.x, (int)(startPoint.x+(endPoint.x - startPoint.x)*0.19),(int)(startPoint.x+(endPoint.x - startPoint.x)*0.81), endPoint.x },
-							new int[] {startPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38), endPoint.y,endPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38)}
-									,5);
-					if(nowColor!=nowInnerColor) {
-						g2.setColor(nowColor);
+				else if(nowModeType == 7){ //  오각
+					if(fillUp) {
+						g2.setColor(nowInnerColor);
+						g2.fillPolygon(
+								new int[] {(startPoint.x+endPoint.x)/2, startPoint.x, (int)(startPoint.x+(endPoint.x - startPoint.x)*0.19),(int)(startPoint.x+(endPoint.x - startPoint.x)*0.81), endPoint.x },
+								new int[] {startPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38), endPoint.y,endPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38)}
+										,5);
+						if(nowColor!=nowInnerColor) {
+							g2.setColor(nowColor);
+							g2.drawPolygon(
+									new int[] {(startPoint.x+endPoint.x)/2, startPoint.x, (int)(startPoint.x+(endPoint.x - startPoint.x)*0.19),(int)(startPoint.x+(endPoint.x - startPoint.x)*0.81), endPoint.x },
+									new int[] {startPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38), endPoint.y,endPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38)}
+											,5);
+							}
+					}
+					else {
 						g2.drawPolygon(
 								new int[] {(startPoint.x+endPoint.x)/2, startPoint.x, (int)(startPoint.x+(endPoint.x - startPoint.x)*0.19),(int)(startPoint.x+(endPoint.x - startPoint.x)*0.81), endPoint.x },
 								new int[] {startPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38), endPoint.y,endPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38)}
 										,5);
-						}
+					}
+					
 				}
-				else {
-					g2.drawPolygon(
-							new int[] {(startPoint.x+endPoint.x)/2, startPoint.x, (int)(startPoint.x+(endPoint.x - startPoint.x)*0.19),(int)(startPoint.x+(endPoint.x - startPoint.x)*0.81), endPoint.x },
-							new int[] {startPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38), endPoint.y,endPoint.y,(int)(startPoint.y+(endPoint.y - startPoint.y)*0.38)}
-									,5);
-				}
-				
-			}
-			else if(nowModeType == 8) { // 삼각교차별 
-				if(fillUp) {
-					g2.setColor(nowInnerColor);
-					g2.fillPolygon(
-							new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
-							new int[] {(int)(startPoint.y + (endPoint.y-startPoint.y)*0.75), startPoint.y, (int)(startPoint.y + (endPoint.y-startPoint.y)*0.75)},
-							3);
-					g2.fillPolygon(
-							new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
-							new int[] {(int)(endPoint.y - (endPoint.y-startPoint.y)*0.75), endPoint.y, (int)(endPoint.y - (endPoint.y-startPoint.y)*0.75)},
-							3);
-					if(nowColor!=nowInnerColor) {
-						g2.setColor(nowColor);
+				else if(nowModeType == 8) { // 삼각교차별 
+					if(fillUp) {
+						g2.setColor(nowInnerColor);
+						g2.fillPolygon(
+								new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
+								new int[] {(int)(startPoint.y + (endPoint.y-startPoint.y)*0.75), startPoint.y, (int)(startPoint.y + (endPoint.y-startPoint.y)*0.75)},
+								3);
+						g2.fillPolygon(
+								new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
+								new int[] {(int)(endPoint.y - (endPoint.y-startPoint.y)*0.75), endPoint.y, (int)(endPoint.y - (endPoint.y-startPoint.y)*0.75)},
+								3);
+						if(nowColor!=nowInnerColor) {
+							g2.setColor(nowColor);
+							g2.drawPolygon(
+									new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
+									new int[] {(int)(startPoint.y + (endPoint.y-startPoint.y)*0.75), startPoint.y, (int)(startPoint.y + (endPoint.y-startPoint.y)*0.75)},
+									3);
+							g2.drawPolygon(
+									new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
+									new int[] {(int)(endPoint.y - (endPoint.y-startPoint.y)*0.75), endPoint.y, (int)(endPoint.y - (endPoint.y-startPoint.y)*0.75)},
+									3);
+							}
+					}
+					else {
 						g2.drawPolygon(
 								new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
 								new int[] {(int)(startPoint.y + (endPoint.y-startPoint.y)*0.75), startPoint.y, (int)(startPoint.y + (endPoint.y-startPoint.y)*0.75)},
@@ -450,23 +477,14 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 								new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
 								new int[] {(int)(endPoint.y - (endPoint.y-startPoint.y)*0.75), endPoint.y, (int)(endPoint.y - (endPoint.y-startPoint.y)*0.75)},
 								3);
-						}
-				}
-				else {
-					g2.drawPolygon(
-							new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
-							new int[] {(int)(startPoint.y + (endPoint.y-startPoint.y)*0.75), startPoint.y, (int)(startPoint.y + (endPoint.y-startPoint.y)*0.75)},
-							3);
-					g2.drawPolygon(
-							new int[] {startPoint.x, (startPoint.x+endPoint.x)/2,endPoint.x},
-							new int[] {(int)(endPoint.y - (endPoint.y-startPoint.y)*0.75), endPoint.y, (int)(endPoint.y - (endPoint.y-startPoint.y)*0.75)},
-							3);
+					}
+					
 				}
 				
-			}
+				} // end of draw if statement
 			
-			} // end of draw if statement
-		
+		}
+			
 	}
 	
 	
