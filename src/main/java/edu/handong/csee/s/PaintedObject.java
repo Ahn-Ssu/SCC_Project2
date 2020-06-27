@@ -2,10 +2,12 @@ package edu.handong.csee.s;
 
 import java.awt.Color;
 import java.awt.Point;
+import java.awt.geom.GeneralPath;
+import java.util.ArrayList;
 
 public class PaintedObject {
 
-
+	public ArrayList<Point> thePointStack;
 	public Color theColor;
 	public Color theInnerColor;
 	public int theMode;
@@ -16,7 +18,8 @@ public class PaintedObject {
 	public Point theEndPoint;
 	
 	
-	public PaintedObject(Color theColor,Color theInnerColor, int theMode, int theModeType, int theThickness, boolean doFill, Point theStartPoint, Point theEndPoint ) {
+	public PaintedObject(ArrayList<Point> pointStack, Color theColor,Color theInnerColor, int theMode, int theModeType, int theThickness, boolean doFill, Point theStartPoint, Point theEndPoint ) {
+		this.thePointStack = pointStack;
 		this.theColor = theColor;
 		this.theInnerColor = theInnerColor;
 		this.theMode = theMode;
