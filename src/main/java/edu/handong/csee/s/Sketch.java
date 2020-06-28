@@ -217,7 +217,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3F);
 		
 		// 자유곡선 모드에 사용할 점 좌표 저
-		if(nowMode == 2 && nowModeType == 1 ) {
+		if(nowMode == 2 ) {
 				pointStack.add(new Point(e.getX(), e.getY()));
 				repaint();
 		}
@@ -256,7 +256,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1F);
 		
 		
-		if(nowMode == 2 && nowModeType == 1) {
+		if(nowMode == 2) {
 			pointStack.add(new Point(e.getX(), e.getY()));
 			repaint();
 		}
@@ -282,15 +282,27 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	
 	public void sketchUp(Graphics2D g2) {
 		
-		if(nowMode == 2 && nowModeType == 1) { // 펜 자유곡선 
-			int[] stackedX = new int[pointStack.size()];
-			int[] stackedY = new int[pointStack.size()];
-			for(int i=0;i<pointStack.size(); i++){
-				stackedX[i] = pointStack.get(i).x;
-				stackedY[i] = pointStack.get(i).y;
+		if(nowMode == 2 ) { // 펜 자유곡선 
+			if(nowModeType == 1) {
+				int[] stackedX = new int[pointStack.size()];
+				int[] stackedY = new int[pointStack.size()];
+				for(int i=0;i<pointStack.size(); i++){
+					stackedX[i] = pointStack.get(i).x;
+					stackedY[i] = pointStack.get(i).y;
+				}
+				g2.drawPolyline(stackedX, stackedY, pointStack.size());
 			}
-			g2.drawPolyline(stackedX, stackedY, pointStack.size());
-			
+			else if( nowModeType == 2) {
+				
+				int[] stackedX = new int[pointStack.size()];
+				int[] stackedY = new int[pointStack.size()];
+				for(int i=0;i<pointStack.size(); i++){
+					stackedX[i] = pointStack.get(i).x;
+					stackedY[i] = pointStack.get(i).y;
+				}
+				g2.setColor(Color.WHITE);
+				g2.drawPolyline(stackedX, stackedY, pointStack.size());
+			}	
 		}
 		else {
 			if(nowMode == 4) { // 도형 입력일때 
