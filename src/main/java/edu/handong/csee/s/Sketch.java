@@ -22,41 +22,46 @@ import javax.swing.JFrame;
 
 
 public class Sketch extends JComponent implements MouseMotionListener, MouseListener {
+	
 	// 분할한 클래스에서 현재 그리고 있는 캔버스를 같이 이용하기 위함
 	// Singletone set up
 	static Sketch instance;
 	
+	//그리기 위한 정보들 
 	private Color nowColor;
 	private Color nowInnerColor;
 	private int nowMode;
 	private int nowModeType;
 	private int nowThickness;
 	private boolean fillUp;
+	private AlphaComposite alphaComposite;
+	private Point startPoint;
+	private Point endPoint;
+	private ArrayList<Point> pointStack = new ArrayList<Point>();
 	
+	// undo redo 수행시 안전을 위한 편단 변수 
 	private int undoCount;
 	private int redoCount;
 	
+	//이전 작업들의 정보를 담는 컨테이너, 그걸 저장하는 List & 임시 작업버퍼(redo/undo)
+	private ArrayList<PaintedObject> workedShape = new ArrayList<PaintedObject>(); 
+	private ArrayList<PaintedObject> undoRedoBuffer = new ArrayList<PaintedObject>();
+	
+	//그릴 때의 케이스 
 	private boolean doNewDraw;
 	private boolean doClear;
-	private boolean doStack;
-	private AlphaComposite alphaComposite;
 	
-	private Point startPoint;
-	private Point endPoint;
-	
+	//인터페이스 요소를 담는 객체
 	private static ToolBarMaker tool = new ToolBarMaker();
 	private static MenuBarMaker bar = new MenuBarMaker();
 	
+	Shape selectedShape;
+	Shape shape;
 	
-	private ArrayList<PaintedObject> workedShape = new ArrayList<PaintedObject>(); 
-	private ArrayList<PaintedObject> undoRedoBuffer = new ArrayList<PaintedObject>();
-	private ArrayList<Point> pointStack = new ArrayList<Point>();
-
 	
 	private Sketch() {
 		addMouseMotionListener(this);
 		addMouseListener(this);
-
 	}
 	
 	public static Sketch getInstance() {
@@ -172,7 +177,9 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			g2.setStroke(new BasicStroke(nowThickness));
 			g2.setComposite(alphaComposite);
 			undoRedoBuffer.clear();
+			Highlighting(g2);
 			sketchUp(g2);
+			
 		}
 		
 	}
@@ -213,7 +220,6 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		endPoint = e.getPoint();
 		// 그림이 그려지는 흔적을 마우스 드래그할떄 따라오게끔 
 		doNewDraw = true;
-		doStack = true;
 		alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3F);
 		
 		// 자유곡선 모드에 사용할 점 좌표 저
@@ -280,8 +286,36 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	@Override
 	public void mouseMoved(MouseEvent e) {	}
 	
-	public void sketchUp(Graphics2D g2) {
+	
+	public void Highlighting(Graphics2D g2) {
+		Color ColorTemp = nowColor;
 		
+		g2.setColor(Color.black);
+		g2.setStroke(new BasicStroke(2));
+		
+		//굵기에 따른 유동적 위치 비율 조
+		g2.drawRect(
+				startPoint.x-nowThickness,
+				startPoint.y-nowThickness,
+				4,4);
+		g2.drawRect(
+				endPoint.x+nowThickness/2,
+				startPoint.y-nowThickness,
+				4,4);
+		g2.drawRect(
+				startPoint.x-nowThickness,
+				endPoint.y+nowThickness/2,
+				4,4);
+		g2.drawRect(
+				endPoint.x+nowThickness/2,
+				endPoint.y+nowThickness/2,
+				4,4);
+		
+		g2.setColor(ColorTemp);
+		g2.setStroke(new BasicStroke(nowThickness));
+	}
+	
+	public void sketchUp(Graphics2D g2) {
 		if(nowMode == 2 && nowModeType == 1) { // 펜 자유곡선 
 			if(nowModeType == 1) {
 				int[] stackedX = new int[pointStack.size()];
