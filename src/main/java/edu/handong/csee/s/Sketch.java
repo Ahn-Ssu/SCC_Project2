@@ -242,6 +242,12 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 				
 				workedShape.set(selectedIndex, selectedShapeInfo);
 				
+				
+				selectedShape =new Rectangle2D.Double(
+						(double)Math.min(selectedShapeInfo.theEndPoint.x,selectedShapeInfo.theStartPoint.x),
+						(double)Math.min(selectedShapeInfo.theEndPoint.y,selectedShapeInfo.theStartPoint.y), 
+						(double)Math.abs(selectedShapeInfo.theEndPoint.x -selectedShapeInfo.theStartPoint.x),
+						(double)Math.abs(selectedShapeInfo.theEndPoint.y-selectedShapeInfo.theStartPoint.y));
 				System.out.println("in mP1 :"+mPoint1);
 				System.out.println("in mP2 :"+mPoint2);
 				System.out.println("in end :"+endPoint);
@@ -331,7 +337,11 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			workedShape.add(new PaintedObject(pointStack,nowColor,nowInnerColor,nowMode,nowModeType,nowThickness,fillUp, startPoint,endPoint));	
 		}
 		doNewDraw = false;
-
+		if(selectedShape!=null) {
+			shapeStack.add(selectedShape);
+			selectedShape = null;
+		}
+		
 		System.out.println("shape stack size :"+shapeStack.size());	
 		
 	}
@@ -344,7 +354,9 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 					selectedShapeInfo = workedShape.get(i);
 					selectedIndex = i;
 					doMove = true;
+					
 				}	
+			shapeStack.remove(selectedIndex);
 			repaint();
 		}
 		
@@ -360,7 +372,8 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		// 저장된 스택중에 지금 위치와 겹치는게 한 곳이라도 있으면 커서 변경 
 		if(tool.getMode() ==1 && tool.getModeType() == 2) {
 			for(int i=0; i < shapeStack.size();i++) 
-				if(shapeStack.get(i).contains(e.getX(), e.getY())) 
+				if(shapeStack.get(i).contains(e.getX(), e.getY())
+						|| selectedShape.contains(e.getX(),e.getY())) 
 					if(!isThere)
 						isThere = true;
 		}
