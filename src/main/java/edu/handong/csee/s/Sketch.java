@@ -282,7 +282,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	
 	public void sketchUp(Graphics2D g2) {
 		
-		if(nowMode == 2 ) { // 펜 자유곡선 
+		if(nowMode == 2 && nowModeType == 1) { // 펜 자유곡선 
 			if(nowModeType == 1) {
 				int[] stackedX = new int[pointStack.size()];
 				int[] stackedY = new int[pointStack.size()];
