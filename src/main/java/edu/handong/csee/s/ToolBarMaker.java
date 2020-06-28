@@ -12,7 +12,7 @@ import javax.swing.SwingConstants;
 
 public class ToolBarMaker implements ActionListener {
 	private JPanel toolPanel ;
-	private JButton d1, d2, s1, s2, p1, p2, b1, b2, f1, f2, f3, f4, f5, f6, f7, f8, c1, c2;
+	private JButton m1,m2,d1, d2, s1, s2, p1, p2, b1, b2, f1, f2, f3, f4, f5, f6, f7, f8, c1, c2;
 	
 	private ColorSelector ToolColorEditor = new ColorSelector();
 	private Color nowLineColor=Color.DARK_GRAY;
@@ -28,8 +28,17 @@ public class ToolBarMaker implements ActionListener {
 	public ToolBarMaker() {
 		JPanel tempPanel = new JPanel();
 		tempPanel.setBackground(Color.GRAY);
-		GridLayout toolLayout = new GridLayout(15,1);
+		GridLayout toolLayout = new GridLayout(17,1);
 		
+		JLabel cursorTag = new JLabel("Coursor Tool",SwingConstants.CENTER);
+		JPanel cursorSlot = new JPanel(new GridLayout(1,2));
+		cursorSlot.setBackground(Color.GRAY);
+		m1 = new JButton ("Draw");
+		m2 = new JButton ("Select");
+//		d2.setBackground(Color.LIGHT_GRAY);
+		m1.setToolTipText("Draw mode, can draw by using mouse");
+		m2.setToolTipText("Select mode, can slect painted obje by mouse");
+		cursorSlot.add(m1);cursorSlot.add(m2);
 		JLabel zTag = new JLabel("Undo / Redo",SwingConstants.CENTER);
 		JPanel zSlot = new JPanel(new GridLayout(1,2));
 		zSlot.setBackground(Color.GRAY);
@@ -104,27 +113,21 @@ public class ToolBarMaker implements ActionListener {
 		c2.setToolTipText("Changeing the color current inner color, defualt BLACK /n If not set, follow the default value");
 		colorSlot.add(c1);colorSlot.add(c2);
 		
-		tempPanel.add(zTag);
-		tempPanel.add(zSlot);
-		tempPanel.add(selectionTag);
-		tempPanel.add(selectionSlot);
-		tempPanel.add(penTag);
-		tempPanel.add(penSlot);
-		tempPanel.add(boldTag);
-		tempPanel.add(boldSlot);
-		tempPanel.add(shapeTag);
-		tempPanel.add(shapeSlot1);
-		tempPanel.add(shapeSlot2);
-		tempPanel.add(shapeSlot3);
-		tempPanel.add(shapeSlot4);
-		tempPanel.add(colorTag);
-		tempPanel.add(colorSlot);
+		tempPanel.add(cursorTag);tempPanel.add(cursorSlot);
+		tempPanel.add(zTag);tempPanel.add(zSlot);
+		tempPanel.add(selectionTag);tempPanel.add(selectionSlot);
+		tempPanel.add(penTag);tempPanel.add(penSlot);
+		tempPanel.add(boldTag);tempPanel.add(boldSlot);
+		tempPanel.add(shapeTag);tempPanel.add(shapeSlot1);tempPanel.add(shapeSlot2);tempPanel.add(shapeSlot3);tempPanel.add(shapeSlot4);
+		tempPanel.add(colorTag);tempPanel.add(colorSlot);
 		
 		tempPanel.setLayout(toolLayout);
 	
 		toolPanel = tempPanel;
 		
 		//버튼 이벤트 
+
+		m1.addActionListener(this);m2.addActionListener(this);		
 		d1.addActionListener(this);d2.addActionListener(this);		
 		s1.addActionListener(this);s2.addActionListener(this);
 		p1.addActionListener(this);p2.addActionListener(this);
@@ -148,14 +151,21 @@ public class ToolBarMaker implements ActionListener {
 			if(fillOrEmpty && nowInnerColor == Color.DARK_GRAY) {
 				nowInnerColor = nowLineColor;
 				c2.setForeground(nowInnerColor);
-			}
-				
+			}	
 		}
 		if(e.getActionCommand() == "Inner Color ▆") {
 			System.out.println("Inner Color ▆");
 			ToolColorEditor.ColorSelect(ToolColorEditor.getColor());
 			nowInnerColor = ToolColorEditor.getColor();
 			c2.setForeground(nowInnerColor);
+		}
+		else if(e.getActionCommand() == "Draw") {
+			System.out.println("Draw mode");
+			mode =2 ;modeType = 1;
+		}
+		else if(e.getActionCommand() == "Select") {
+			System.out.println("Slect mode");
+			mode =2 ;modeType = 2;
 		}
 		else if(e.getActionCommand() == "⟲") {
 			System.out.println("⟲ undo");
