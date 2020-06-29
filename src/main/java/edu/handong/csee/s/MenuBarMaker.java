@@ -15,6 +15,8 @@ public class MenuBarMaker implements ActionListener {
 	
 	private JMenu fileMenu;
 	private JMenuItem createNew;
+	private JMenuItem save;
+	private JMenuItem open;
 	
 	private JMenu EditMenu;
 	private JMenuItem removeAll;
@@ -33,21 +35,28 @@ public class MenuBarMaker implements ActionListener {
 		paintMenu = new JMenuBar();
 		
 		createNew = new JMenuItem("새로 만들기 / Create new Canvers");
+		save = new JMenuItem("저장 / Save");
+		open = new JMenuItem("불러오기 / Import");
 		fileMenu = new JMenu("파일 / File ");
+		fileMenu.add(createNew);
+		fileMenu.add(save);
+		fileMenu.add(open);
 		
 		removeAll = new JMenuItem("모두 지우기 / Clear All");
 		EditMenu = new JMenu("편집 / Edit");		
-
+		EditMenu.add(removeAll);
+		
 		changeColor = new JMenuItem("배경색 설정 / set Background Color");
 		backColorMenu = new JMenu("배경색 / Background Color");
+		backColorMenu.add(changeColor);
 		
 		help = new JMenuItem("도움말 / Help Contects");
 		helpMenu = new JMenu("그 외 / Help");
-		
-		fileMenu.add(createNew);
-		EditMenu.add(removeAll);
-		backColorMenu.add(changeColor);
 		helpMenu.add(help);
+		
+		
+		
+		
 
 		paintMenu.add(fileMenu);
 		paintMenu.add(EditMenu);
@@ -56,6 +65,8 @@ public class MenuBarMaker implements ActionListener {
 		
 		
 		createNew.addActionListener(this);
+		save.addActionListener(this);
+		open.addActionListener(this);
 		removeAll.addActionListener(this);
 		changeColor.addActionListener(this);
 		help.addActionListener(this);
@@ -64,10 +75,15 @@ public class MenuBarMaker implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		//System.out.println(e.getActionCommand());
-		
-		if(e.getActionCommand() == "새로 만들기 / Create new Canvers") {
-			System.out.println("new");
-			Sketch.getInstance().newCanvas();
+		if(e.getActionCommand() == "저장 / Save") {
+			System.out.println("저장 / Save");
+		}
+		else if(e.getActionCommand() == "불러오기 / Import") {
+			System.out.println("불러오기 / Import");
+		}
+		else if(e.getActionCommand() == "모두 지우기 / Clear All") {
+			System.out.println("clear");
+			Sketch.getInstance().allClear();
 		}
 		else if(e.getActionCommand() == "모두 지우기 / Clear All") {
 			System.out.println("clear");
