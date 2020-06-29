@@ -8,12 +8,15 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public class ToolBarMaker implements ActionListener {
 	private JPanel toolPanel ;
 	private JButton m1,m2,d1, d2, s1, s2, p1, p2, b1, b2, f1, f2, f3, f4, f5, f6, f7, f8, c1, c2;
-	
+	private JSlider boldBar;
 	private ColorSelector ToolColorEditor = new ColorSelector();
 	private Color nowLineColor=Color.DARK_GRAY;
 	private Color nowInnerColor = Color.DARK_GRAY;
@@ -65,14 +68,20 @@ public class ToolBarMaker implements ActionListener {
 		p1.setToolTipText("Pen tool, can draw by the mouse");
 		p2.setToolTipText("Eraser tool,can remove by the mouse");
 		penSlot.add(p1);penSlot.add(p2);
-		JLabel boldTag = new JLabel("Thinkness",SwingConstants.CENTER);
-		JPanel boldSlot = new JPanel(new GridLayout(1,2));
-		boldSlot.setBackground(Color.GRAY);
-		b1 = new JButton ("𝐁+");
-		b2 = new JButton ("𝑙-");
-		b1.setToolTipText("Be Bold, can make more Bold line or figure");
-		b2.setToolTipText("Be thin, can make more thin line or figure");
-		boldSlot.add(b1);boldSlot.add(b2);
+		JLabel boldTag = new JLabel("Thinkness :   "+thickness,SwingConstants.CENTER);
+		JPanel boldSlot = new JPanel();
+		boldSlot.setBackground(Color.WHITE);
+		boldBar = new JSlider(0,50, 3);
+		boldBar.setMajorTickSpacing(10);
+		boldBar.setMinorTickSpacing(2);
+		boldBar.setPaintTicks(true);
+		boldBar.setPaintLabels(true);
+		boldSlot.add(boldBar);
+//		b1 = new JButton ("𝐁+");
+//		b2 = new JButton ("𝑙-");
+//		b1.setToolTipText("Be Bold, can make more Bold line or figure");
+//		b2.setToolTipText("Be thin, can make more thin line or figure");
+//		boldSlot.add(b1);boldSlot.add(b2);
 		JLabel shapeTag = new JLabel("Figure",SwingConstants.CENTER);
 		JPanel shapeSlot1 = new JPanel(new GridLayout(1,2));
 		JPanel shapeSlot2 = new JPanel(new GridLayout(1,2));
@@ -131,11 +140,24 @@ public class ToolBarMaker implements ActionListener {
 		d1.addActionListener(this);d2.addActionListener(this);		
 		s1.addActionListener(this);s2.addActionListener(this);
 		p1.addActionListener(this);p2.addActionListener(this);
-		b1.addActionListener(this);b2.addActionListener(this);
+//		b1.addActionListener(this);b2.addActionListener(this);
 		f1.addActionListener(this);f2.addActionListener(this);f3.addActionListener(this);f4.addActionListener(this);
 		f5.addActionListener(this);f6.addActionListener(this);f7.addActionListener(this);f8.addActionListener(this);
 		c1.addActionListener(this);c2.addActionListener(this);
 		
+		boldBar.addChangeListener(new ChangeListener() {
+            
+            
+            public void stateChanged(ChangeEvent e) {
+            	thickness = boldBar.getValue();
+            	if(thickness>9) {
+            		boldTag.setText("Thinkness : "+thickness);
+            	}
+            	else
+            		boldTag.setText("Thinkness :   "+thickness);
+            }
+            
+        });
 	}
 	// 툴바 생
 	public JPanel getToolBar() {
@@ -161,11 +183,11 @@ public class ToolBarMaker implements ActionListener {
 		}
 		else if(e.getActionCommand() == "Draw") {
 			System.out.println("Draw mode");
-			mode =2 ;modeType = 1;
+			mode =1 ;modeType = 1;
 		}
 		else if(e.getActionCommand() == "Select") {
 			System.out.println("Slect mode");
-			mode =2 ;modeType = 2;
+			mode =1 ;modeType = 2;
 		}
 		else if(e.getActionCommand() == "⟲") {
 			System.out.println("⟲ undo");
@@ -197,16 +219,16 @@ public class ToolBarMaker implements ActionListener {
 			System.out.println("🀆");
 			mode = 2;modeType =2;
 		}
-		else if(e.getActionCommand() == "𝐁+") {
-			System.out.println("𝐁+");
-			if(thickness<15)
-				thickness++;
-		}
-		else if(e.getActionCommand() == "𝑙-") {
-			System.out.println("𝑙-");
-			if(thickness>1)
-				thickness--;
-		}
+//		else if(e.getActionCommand() == "𝐁+") {
+//			System.out.println("𝐁+");
+//			if(thickness<15)
+//				thickness++;
+//		}
+//		else if(e.getActionCommand() == "𝑙-") {
+//			System.out.println("𝑙-");
+//			if(thickness>1)
+//				thickness--;
+//		}
 		else if(e.getActionCommand() == "⧸") {
 			System.out.println("⧸");
 			mode = 4;modeType =1;
@@ -277,4 +299,6 @@ public class ToolBarMaker implements ActionListener {
 		c1.setForeground(nowLineColor);
 		c2.setForeground(nowInnerColor);
 	}
+	
+	
 }

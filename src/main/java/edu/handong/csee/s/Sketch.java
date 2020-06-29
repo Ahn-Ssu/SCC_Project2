@@ -16,7 +16,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -153,9 +152,8 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		
 		
 		//화면 클리어, 하얀화면(배경화면)을 기준으로 잡고 버튼이 눌렸을때 프레임위에 아주 큰 하얀 상자를 위에 올려 씌움
-		// ctrl + A 선택해서 전부 날려도 ^+Z 로 다시 다 생성 가능한 것을 반영, undo / redo rksmd
+		// ctrl + A 선택해서 전부 날려도 ^+Z 로 다시 다 생성 가능한 것을 반영, undo / redo 가능  
 		if(doClear) {
-			
 			
 			nowColor = Color.WHITE;;
 			nowInnerColor = Color.WHITE;
@@ -193,6 +191,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			undoRedoBuffer.clear();
 			Highlighting(g2);
 			sketchUp(g2);
+			
 		}
 		 
 		if(selectedShape != null) {
@@ -217,7 +216,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 			endPoint = selectedShapeInfo.theEndPoint;
 			pointStack = new ArrayList<>(selectedShapeInfo.thePointStack);
 			Highlighting(g2);
-			
+//			
 		}
 		
 	}
@@ -230,11 +229,25 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		// 그림이 그려지는 흔적을 마우스 드래그할떄 따라오게끔 
 		doNewDraw = true;
 		alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3F);
+
+//		if(nowMode == 1 && nowMode == 2)
+//		if (selectedShape == null) {
+//			if (shapeStack.size() > 0)
+//				for (int i = 0; i < shapeStack.size(); i++)
+//					if (shapeStack.get(i).contains(e.getX(), e.getY())) {
+//						selectedShape = shapeStack.get(i);
+//						selectedShapeInfo = workedShape.get(i);
+//						selectedIndex = i;
+//						doMove = true;
+//					}
+//			
+//		}
+		
 		
 		if(doMove) {
 			if(selectedShape.contains(e.getX(),e.getY())) {
 				mPoint2 = e.getPoint();
-				startPoint = mPoint1;
+//				startPoint = mPoint1;
 				selectedShapeInfo.theStartPoint.x += mPoint2.x - mPoint1.x;
 				selectedShapeInfo.theStartPoint.y += mPoint2.y - mPoint1.y;
 				selectedShapeInfo.theEndPoint.x += mPoint2.x - mPoint1.x;
@@ -248,18 +261,13 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 						(double)Math.min(selectedShapeInfo.theEndPoint.y,selectedShapeInfo.theStartPoint.y), 
 						(double)Math.abs(selectedShapeInfo.theEndPoint.x -selectedShapeInfo.theStartPoint.x),
 						(double)Math.abs(selectedShapeInfo.theEndPoint.y-selectedShapeInfo.theStartPoint.y));
-				System.out.println("in mP1 :"+mPoint1);
-				System.out.println("in mP2 :"+mPoint2);
-				System.out.println("in end :"+endPoint);
 
 				mPoint1 = mPoint2;
 			}
 			repaint();
+			
 	}
-		
-		System.out.println("out mP1 :"+mPoint1);
-		System.out.println("out mP2 :"+mPoint2);
-		System.out.println("out end :"+endPoint);
+	
 		
 		//지우개 모드일때 커서를 잠시 안보이게 해서 지울때 편하게 함 
 		BufferedImage cursorImg = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
@@ -278,6 +286,9 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		}
 	}
 
+	// 지금 그려놓은 오브젝트를 한번씩만 선택해서 옮길떄는 문제가 없음 
+	// 이것저것 고르면 에러뜸
+	// 선택모드로 선택한 후에 그림 그리면 그림을 그릴 수도 있고 못그릴때도 있
 	@Override
 	public void mousePressed(MouseEvent e) {
 		
@@ -309,15 +320,14 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		System.out.println("Start - x :" + startPoint.x +", y :" + startPoint.y);
 		System.out.println("Thickness "+nowThickness);
 		System.out.println("Fill up? :"+ fillUp);
-		System.out.println("stack size :"+pointStack.size());
-		System.out.println("worked size :"+workedShape.size());
 	}
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		//endPoint 종결,투명도 0
+		if(!doMove)
 		endPoint = e.getPoint();
 		alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1F);
-		doMove = false;
+		
 		
 		if(nowMode == 2) {
 			pointStack.add(new Point(e.getX(), e.getY()));
@@ -333,20 +343,39 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		}
 
 		if(nowMode == 2 || nowMode == 4) {
-			shapeStack.add(shape);
+//			shapeStack.add(shape);
+			if(!doMove)
 			workedShape.add(new PaintedObject(pointStack,nowColor,nowInnerColor,nowMode,nowModeType,nowThickness,fillUp, startPoint,endPoint));	
+			shapeStack = new ArrayList<>();
+			
+			//이동해서 변화된 위치로 shapeStack의 정보를 재배치 
+			for(PaintedObject p : workedShape) {
+				shape =new Rectangle2D.Double(
+						(double)Math.min(p.theEndPoint.x,p.theStartPoint.x),
+						(double)Math.min(p.theEndPoint.y,p.theStartPoint.y), 
+						(double)Math.abs(p.theEndPoint.x-p.theStartPoint.x),
+						(double)Math.abs(p.theEndPoint.y-p.theStartPoint.y));
+		
+				shapeStack.add(shape);
+			}
 		}
 		doNewDraw = false;
-		if(selectedShape!=null) {
-			shapeStack.add(selectedShape);
+		
+		if(selectedShape!=null && doMove == true) {
 			selectedShape = null;
+			selectedShapeInfo = null;
 		}
 		
+		doMove = false;
 		System.out.println("shape stack size :"+shapeStack.size());	
+		System.out.println("Point stack size :"+pointStack.size());
+		System.out.println("worked size :"+workedShape.size());
+	
 		
 	}
 	@Override
 	public void mouseClicked(MouseEvent e) { 
+		System.out.println("click");
 		if(tool.getMode() ==1 && tool.getModeType() == 2) {
 			for(int i=0; i < shapeStack.size();i++) 
 				if(shapeStack.get(i).contains(e.getX(), e.getY())) {
@@ -356,8 +385,9 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 					doMove = true;
 					
 				}	
-			shapeStack.remove(selectedIndex);
+			
 			repaint();
+			
 		}
 		
 	}
@@ -370,12 +400,22 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		cursor = Cursor.getDefaultCursor();
 		
 		// 저장된 스택중에 지금 위치와 겹치는게 한 곳이라도 있으면 커서 변경 
+		
 		if(tool.getMode() ==1 && tool.getModeType() == 2) {
-			for(int i=0; i < shapeStack.size();i++) 
-				if(shapeStack.get(i).contains(e.getX(), e.getY())
-						|| selectedShape.contains(e.getX(),e.getY())) 
+			if(shapeStack.size()>0) {
+				for(int i=0; i < shapeStack.size();i++) 
+					if(shapeStack.get(i).contains(e.getX(), e.getY()))
 					if(!isThere)
 						isThere = true;
+			}
+				
+			if(selectedShape != null && shapeStack.size()>0) {
+				for(int i=0; i < shapeStack.size();i++) 
+					if(selectedShape.contains(e.getX(),e.getY())) 
+					if(!isThere)
+						isThere = true;
+			}
+				
 		}
 		if(isThere)
 			cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
@@ -396,6 +436,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 					stackedX[i] = pointStack.get(i).x;
 					stackedY[i] = pointStack.get(i).y;
 				}
+				
 				g2.drawPolyline(stackedX, stackedY, pointStack.size());
 				
 			}
@@ -629,7 +670,7 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	
 	public void Highlighting(Graphics2D g2) {
 		Color ColorTemp = nowColor;
-		
+
 		g2.setColor(Color.black);
 		g2.setStroke(new BasicStroke(2));
 		
@@ -637,45 +678,55 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		//자유곡선이랑 도형의 하이라이트 포인트를 나눔 
 		if(nowMode == 2) {
 			if(nowModeType == 2) {
+				g2.setComposite( AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1F));
+				
 				g2.drawRect(
-						endPoint.x,
-						endPoint.y,
+						endPoint.x-nowThickness/2,
+						endPoint.y-nowThickness/2,
 						nowThickness,
 						nowThickness);
+				g2.setComposite(alphaComposite);
 			}
 			else {
 				g2.drawRect(
 						startPoint.x-nowThickness,
 						startPoint.y-nowThickness,
-						4,4);
+						nowThickness/2,
+						nowThickness/2);
 				g2.drawRect(
 						endPoint.x+nowThickness/2,
 						endPoint.y+nowThickness/2,
-						4,4);
+						nowThickness/2,
+						nowThickness/2);
 			}
 		}
 		else {
 			g2.drawRect(
 					startPoint.x-nowThickness,
 					startPoint.y-nowThickness,
-					4,4);
+					nowThickness/2,
+					nowThickness/2);
 			g2.drawRect(
 					endPoint.x+nowThickness/2,
 					endPoint.y+nowThickness/2,
-					4,4);
+					nowThickness/2,
+					nowThickness/2);
 		
 			g2.drawRect(
 					endPoint.x+nowThickness/2,
 					startPoint.y-nowThickness,
-					4,4);
+					nowThickness/2,
+					nowThickness/2);
 			g2.drawRect(
 					startPoint.x-nowThickness,
 					endPoint.y+nowThickness/2,
-					4,4);
+					nowThickness/2,
+					nowThickness/2);
 		}
 
 		g2.setColor(ColorTemp);
 		g2.setStroke(new BasicStroke(nowThickness));
+		
 	}
 	
 	
