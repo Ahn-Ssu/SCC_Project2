@@ -8,3 +8,8 @@
 
 ### 4일 프로젝트 
 #### 기능 구현
+
+
+## 배운점 
+싱글톤으로 프로그래밍
+ObjectStream & Serializable 
