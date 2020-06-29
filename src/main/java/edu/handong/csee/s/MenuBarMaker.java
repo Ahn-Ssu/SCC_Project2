@@ -77,6 +77,7 @@ public class MenuBarMaker implements ActionListener {
 		//System.out.println(e.getActionCommand());
 		if(e.getActionCommand() == "저장 / Save") {
 			System.out.println("저장 / Save");
+			Sketch.getInstance().doSave();
 		}
 		else if(e.getActionCommand() == "불러오기 / Import") {
 			System.out.println("불러오기 / Import");

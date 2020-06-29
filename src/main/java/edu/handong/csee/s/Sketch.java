@@ -18,6 +18,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -67,6 +68,9 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 	boolean doMove;
 	Point mPoint1, mPoint2;
 	
+
+
+
 	ArrayList<Shape> shapeStack = new ArrayList<Shape>();
 	
 	
@@ -728,7 +732,18 @@ public class Sketch extends JComponent implements MouseMotionListener, MouseList
 		g2.setStroke(new BasicStroke(nowThickness));
 		
 	}
+	public ArrayList<PaintedObject> getWorkedShape() {
+		return workedShape;
+	}
 	
+	public void doSave() {
+		
+		try {
+			new FileIOHelper().save(workedShape);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	public static void main(String[] args) {
 		JFrame f = new JFrame("Studio A");
