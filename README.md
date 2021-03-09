@@ -1,4 +1,4 @@
-# SCC_Project 2.
+# miniPainter
 ##### 2020 Summer Coding Camp - Project #2 (Prof. KIM HJ)
 ###### 21600402 Ahn SuHyun
 
